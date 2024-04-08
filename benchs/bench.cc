@@ -94,7 +94,7 @@ int main() {
   u64* bench_data = (uint64_t*)malloc(nBench*sizeof(u64));
 
   // experimental settings
-  std::vector<int> kLoads = {75,80,85,90,95};
+  std::vector<int> kLoads = {70,75,80,85,90,95};
   std::vector<data_t> datasets = {data_t::SEQ, data_t::FB, data_t::WIKI, data_t::OSM, data_t::BOOK};
   
   for (size_t i = 0; i < datasets.size(); i++) {
