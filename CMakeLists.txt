@@ -18,7 +18,6 @@ set(LOG_LIBRARIES
     gflags
     stdc++fs
     boost_system
-    boost_coroutine
 )
 
 
