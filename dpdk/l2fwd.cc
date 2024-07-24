@@ -120,7 +120,7 @@ struct l2fwd_port_statistics port_statistics[RTE_MAX_ETHPORTS];
 
 #define MAX_TIMER_PERIOD 86400 /* 1 day max */
 /* A tsc-based timer responsible for triggering statistics printout */
-static uint64_t timer_period = 10; /* default period is 10 seconds */
+static uint64_t timer_period = 1; /* default period is 10 seconds */
 
 /* Print out statistics on packets dropped */
 static void
@@ -180,8 +180,8 @@ l2fwd_mac_updating(struct rte_mbuf *m, unsigned dest_portid)
 
 	/* 02:00:00:00:00:xx */
 	tmp = &eth->d_addr.addr_bytes[0];
-	*((uint64_t *)tmp) = 0x000000000002 + ((uint64_t)dest_portid << 40);
-
+	//*((uint64_t *)tmp) = 0x000000000002 + ((uint64_t)dest_portid << 48);
+	*((uint64_t *)tmp) =  0xbebe989b0398 + ((uint64_t)dest_portid << 48);
 	/* src addr */
 	rte_ether_addr_copy(&l2fwd_ports_eth_addr[dest_portid], &eth->s_addr);
 }
@@ -203,6 +203,7 @@ l2fwd_simple_forward(struct rte_mbuf *m, unsigned portid)
 	sent = rte_eth_tx_buffer(dst_port, 0, buffer, m);
 	if (sent)
 		port_statistics[dst_port].tx += sent;
+
 }
 
 /* main processing loop */
@@ -297,7 +298,7 @@ l2fwd_main_loop(void)
 			for (j = 0; j < nb_rx; j++) {
 				m = pkts_burst[j];
 				rte_prefetch0(rte_pktmbuf_mtod(m, void *));//prefeth
-				l2fwd_simple_forward(m, portid);//从这儿开始改.
+				l2fwd_simple_forward(m, portid);
 			}
 		}
 	}

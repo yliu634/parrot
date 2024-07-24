@@ -190,7 +190,7 @@ class KapilChainedModelHashTable {
     //std::cout<<"Start Inserts"<<std::endl;
     auto start = std::chrono::high_resolution_clock::now(); 
     for(uint64_t i=0; i<data.size();i++) {
-      insert(data[i], 0);
+      insert(data[i], 2);
     }
     auto stop = std::chrono::high_resolution_clock::now(); 
 

@@ -121,12 +121,15 @@ struct l2fwd_port_statistics {
 	uint64_t tx;
 	uint64_t rx;
 	uint64_t dropped;
+	uint64_t last_tx;
+	uint64_t last_rx;
+	uint64_t last_dropped;
 } __rte_cache_aligned;
 struct l2fwd_port_statistics port_statistics[RTE_MAX_ETHPORTS];
 
 #define MAX_TIMER_PERIOD 86400 /* 1 day max */
 /* A tsc-based timer responsible for triggering statistics printout */
-static uint64_t timer_period = 10; /* default period is 10 seconds */
+static uint64_t timer_period = 1; /* default period is 10 seconds */
 
 /* Print out statistics on packets dropped */
 static void
@@ -152,25 +155,30 @@ print_stats(void)
 		if ((l2fwd_enabled_port_mask & (1 << portid)) == 0)
 			continue;
 		printf("\nStatistics for port %u ------------------------------"
-			   "\nPackets sent: %24"PRIu64
-			   "\nPackets received: %20"PRIu64
-			   "\nPackets dropped: %21"PRIu64,
+			   "\nPackets sent: %24"PRIu64,
+			   //"\nPackets received: %20"PRIu64
+			   //"\nPackets dropped: %21"PRIu64,
 			   portid,
-			   port_statistics[portid].tx,
-			   port_statistics[portid].rx,
-			   port_statistics[portid].dropped);
+				 port_statistics[portid].tx - port_statistics[portid].last_tx
+			   //port_statistics[portid].rx - port_statistics[portid].last_rx,
+			   //port_statistics[portid].dropped - port_statistics[portid].last_dropped
+				 );
+
+		port_statistics[portid].last_tx = port_statistics[portid].tx;
+		port_statistics[portid].last_rx = port_statistics[portid].rx;
+		port_statistics[portid].last_dropped = port_statistics[portid].dropped;
 
 		total_packets_dropped += port_statistics[portid].dropped;
 		total_packets_tx += port_statistics[portid].tx;
 		total_packets_rx += port_statistics[portid].rx;
 	}
-	printf("\nAggregate statistics ==============================="
-		   "\nTotal packets sent: %18"PRIu64
-		   "\nTotal packets received: %14"PRIu64
-		   "\nTotal packets dropped: %15"PRIu64,
-		   total_packets_tx,
-		   total_packets_rx,
-		   total_packets_dropped);
+	//printf("\nAggregate statistics ==============================="
+	//	   "\nTotal packets sent: %18"PRIu64
+	//	   "\nTotal packets received: %14"PRIu64
+	//	   "\nTotal packets dropped: %15"PRIu64,
+	//	   total_packets_tx,
+	//	   total_packets_rx,
+	//	   total_packets_dropped);
 	printf("\n====================================================\n");
 
 	fflush(stdout);
@@ -187,13 +195,12 @@ l2fwd_mac_updating(struct rte_mbuf *m, unsigned dest_portid)
 	/* 02:00:00:00:00:xx */// in a reverse way
 	tmp = &eth->d_addr.addr_bytes[0];
 	//*((uint64_t *)tmp) = 0x000000000002 + ((uint64_t)dest_portid << 40);
-	*((uint64_t *)tmp) =  0xbebe989b0398 + ((uint64_t)dest_portid << 40);
+	*((uint64_t *)tmp) =  0xbebe989b0398;// + ((uint64_t)dest_portid << 48);
 
-	/* src addr */
 	rte_ether_addr_copy(&l2fwd_ports_eth_addr[dest_portid], &eth->s_addr);
 }
 
-int nn = 0;
+
 static void
 l2fwd_simple_forward(struct rte_mbuf *m, unsigned portid)
 {
@@ -201,22 +208,20 @@ l2fwd_simple_forward(struct rte_mbuf *m, unsigned portid)
 	int sent;
 	struct rte_eth_dev_tx_buffer *buffer;
 
-	//dst_port = l2fwd_dst_ports[portid];
-	//dst_port = 0;
 	{
 		u64 v;
 		struct rte_ether_hdr *eth;
-		void *tmp;
 		eth = rte_pktmbuf_mtod(m, struct rte_ether_hdr *);
 		uint64_t key = *((uint64_t *)(&eth->d_addr.addr_bytes[0]));
-		key = ((key>>24) & 0xffffff);
-		//std::cout << "pkt " << nn++ << ": " << std::hex << key << "\n";
+		key = (rte_be_to_cpu_64(key)) >> 16;
+		//std::cout << "lookup key: " << key << std::endl;
 		dp->lookUp(key, v);
+		//std::cout << "port:" << v << std::endl;
 		dst_port = v;
 	}
 
-	if (mac_updating)
-		l2fwd_mac_updating(m, dst_port);
+	//if (mac_updating)
+	//	l2fwd_mac_updating(m, dst_port);
 
 	buffer = tx_buffer[dst_port];
 	sent = rte_eth_tx_buffer(dst_port, 0, buffer, m);
@@ -316,7 +321,7 @@ l2fwd_main_loop(void)
 			for (j = 0; j < nb_rx; j++) {
 				m = pkts_burst[j];
 				rte_prefetch0(rte_pktmbuf_mtod(m, void *));//prefeth
-				l2fwd_simple_forward(m, portid);//从这儿开始改.
+				l2fwd_simple_forward(m, portid); 
 			}
 		}
 	}
@@ -926,11 +931,13 @@ main(int argc, char **argv)
 
 	/* set up hash table for l2fwd */
 	{
-		size_t n = 16777216;	//2^24
+		size_t n = 64000000;
 		uint kLoad = 85;
 		std::vector<uint64_t> kvs;
-		load_data<uint64_t>(kvs, 16777216, data_t::SEQ);
+		kvs.clear();
+		load_data<uint64_t>(kvs, n, data_t::FB);
 		parrot_hash_cp_t cp(kvs,kvs.size(),kLoad/100.0);
+		std::cout << "total kvs size: " << kvs.size() << std::endl;
 		dp = new parrot_hash_dp_t(cp);
 	}
 

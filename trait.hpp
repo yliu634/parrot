@@ -28,6 +28,7 @@
 #include "./othello/othello_hashing.hpp"
 #include "./chained/chained_learned_hashing.hpp"
 #include "./parrot/parrot_hashing.hpp"
+#include "./cuckoo/cuckoo_hashing.hpp"
 
 using namespace othello;
 using namespace chained;
@@ -46,14 +47,14 @@ using u32 = uint32_t;
 using ludo_hash_cp_t = ControlPlaneLudo<u64,u64>;
 using ludo_hash_dp_t = DataPlaneLudo<u64,u64>;
 using ludo_hash_stats_t = ludostats::ControlPlaneLudo<u64,u64>;
-
+using cuckoo_hash_t = cuckoo::CuckooHashTable<u64,u64,2,4>;
 using chained_learned_hash_t = KapilChainedModelHashTable<u64,u64,4>;
 
 using parrot_hash_cp_t = ParrotControlPlane<u64,u64,MonotoneRMIHash<u64,10000>>;
 using parrot_hash_dp_t = ParrotDataPlane<u64,u64,MonotoneRMIHash<u64,10000>>;
 
-using othello_hash_cp_t = othello::ControlPlaneOthello<u64,u64,60,0,true,false,true>;
-using othello_hash_dp_t  = othello::DataPlaneOthello<u64,u64,60>;
+using othello_hash_cp_t = othello::ControlPlaneOthello<u64,u64,60,3,true,true,true>;
+using othello_hash_dp_t  = othello::DataPlaneOthello<u64,u64,60,3>;
 
 }
 

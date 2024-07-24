@@ -8,6 +8,7 @@ SRCS_ludo_l2fwd := ludo_l2fwd.cc
 SRCS_parrot_l2fwd := parrot_l2fwd.cc
 SRCS_othello_l2fwd := othello_l2fwd.cc
 SRCS_learned_l2fwd := learned_l2fwd.cc
+SRCS_cuckoo_l2fwd := cuckoo_l2fwd.cc
 
 # Build using pkg-config variables if possible
 PKGCONF ?= pkg-config
@@ -17,7 +18,7 @@ endif
 
 all: shared
 #.PHONY: shared 
-shared: build/l2fwd build/othello_l2fwd build/ludo_l2fwd build/parrot_l2fwd build/learned_l2fwd
+shared: build/l2fwd build/othello_l2fwd build/ludo_l2fwd build/parrot_l2fwd build/learned_l2fwd build/cuckoo_l2fwd
 
 
 PC_FILE := $(shell $(PKGCONF) --path libdpdk 2>/dev/null)
@@ -42,6 +43,9 @@ build/parrot_l2fwd: $(SRCS_parrot_l2fwd) Makefile $(PC_FILE) | build
 
 build/learned_l2fwd: $(SRCS_learned_l2fwd) Makefile $(PC_FILE) | build
 	$(CXX) $(CFLAGS) $(SRCS_learned_l2fwd) $(LOG_FILES) -o $@ $(LDFLAGS) $(LDFLAGS_SHARED)
+
+build/cuckoo_l2fwd: $(SRCS_cuckoo_l2fwd) Makefile $(PC_FILE) | build
+	$(CXX) $(CFLAGS) $(SRCS_cuckoo_l2fwd) $(LOG_FILES) -o $@ $(LDFLAGS) $(LDFLAGS_SHARED)
 
 build:
 	@mkdir -p $@

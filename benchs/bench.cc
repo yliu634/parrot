@@ -89,19 +89,24 @@ void benchmark_othello(std::vector<u64>& kvs,
 int main() {
 
   const size_t n = 50e6;
-  const size_t nBench = 5e6;
+  const size_t nBench = 10e6;
   std::vector<u64> kvs;
   u64* bench_data = (uint64_t*)malloc(nBench*sizeof(u64));
 
   // experimental settings
   std::vector<int> kLoads = {70,75,80,85,90,95};
-  std::vector<data_t> datasets = {data_t::SEQ, data_t::FB, data_t::WIKI, data_t::OSM, data_t::BOOK};
+  std::vector<data_t> datasets = {data_t::FB, data_t::WIKI, data_t::OSM, data_t::BOOK};
   
   for (size_t i = 0; i < datasets.size(); i++) {
 
     kvs.clear();
-    load_data<u64>(kvs, n, datasets[i]);
-    load_bench_data(bench_data, nBench, kvs);
+    try {
+      load_data<u64>(kvs, n, datasets[i]);
+      load_bench_data(bench_data, nBench, kvs);
+    } catch (...) {
+      std::cerr << "Error: please check if you download datasets." << std::endl;
+      exit(0);
+    }
 
     for (size_t j = 0; j < kLoads.size(); j++) {
 

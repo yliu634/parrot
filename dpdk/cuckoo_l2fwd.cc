@@ -45,7 +45,7 @@
 #include "../utils/load_data.h"
 using namespace trait;
 
-chained_learned_hash_t* dp;
+cuckoo_hash_t* dp;
 
 static volatile bool force_quit;
 
@@ -155,14 +155,13 @@ print_stats(void)
 		if ((l2fwd_enabled_port_mask & (1 << portid)) == 0)
 			continue;
 		printf("\nStatistics for port %u ------------------------------"
-			   "\nPackets sent: %24"PRIu64,
-			   //"\nPackets received: %20"PRIu64
-			   //"\nPackets dropped: %21"PRIu64,
+			   "\nPackets sent: %24"PRIu64
+			   "\nPackets received: %20"PRIu64
+			   "\nPackets dropped: %21"PRIu64,
 			   portid,
-				 port_statistics[portid].tx - port_statistics[portid].last_tx
-			   //port_statistics[portid].rx - port_statistics[portid].last_rx,
-			   //port_statistics[portid].dropped - port_statistics[portid].last_dropped
-				 );
+			   port_statistics[portid].tx - port_statistics[portid].last_tx,
+			   port_statistics[portid].rx - port_statistics[portid].last_rx,
+			   port_statistics[portid].dropped - port_statistics[portid].last_dropped);
 
 		port_statistics[portid].last_tx = port_statistics[portid].tx;
 		port_statistics[portid].last_rx = port_statistics[portid].rx;
@@ -172,13 +171,13 @@ print_stats(void)
 		total_packets_tx += port_statistics[portid].tx;
 		total_packets_rx += port_statistics[portid].rx;
 	}
-	//printf("\nAggregate statistics ==============================="
-	//	   "\nTotal packets sent: %18"PRIu64
-	//	   "\nTotal packets received: %14"PRIu64
-	//	   "\nTotal packets dropped: %15"PRIu64,
-	//	   total_packets_tx,
-	//	   total_packets_rx,
-	//	   total_packets_dropped);
+	printf("\nAggregate statistics ==============================="
+		   "\nTotal packets sent: %18"PRIu64
+		   "\nTotal packets received: %14"PRIu64
+		   "\nTotal packets dropped: %15"PRIu64,
+		   total_packets_tx,
+		   total_packets_rx,
+		   total_packets_dropped);
 	printf("\n====================================================\n");
 
 	fflush(stdout);
@@ -208,20 +207,21 @@ l2fwd_simple_forward(struct rte_mbuf *m, unsigned portid)
 	unsigned dst_port;
 	int sent;
 	struct rte_eth_dev_tx_buffer *buffer;
-	
+
+	//dst_port = l2fwd_dst_ports[portid];
+	//dst_port = 0;
 	{
 		u64 v;
 		struct rte_ether_hdr *eth;
 		eth = rte_pktmbuf_mtod(m, struct rte_ether_hdr *);
 		uint64_t key = *((uint64_t *)(&eth->d_addr.addr_bytes[0]));
-		key = (rte_be_to_cpu_64(key)) >> 16;
+		key = (rte_be_to_cpu_64(key)) >> 16;	
 		dp->lookUp(key, v);
 		dst_port = v;
-		//std::cout << "lookup: " << key << ", v: " << v << std::endl;
 	}
 
-	//if (mac_updating)
-	//	l2fwd_mac_updating(m, dst_port);
+	if (mac_updating)
+		l2fwd_mac_updating(m, dst_port);
 
 	buffer = tx_buffer[dst_port];
 	sent = rte_eth_tx_buffer(dst_port, 0, buffer, m);
@@ -321,7 +321,7 @@ l2fwd_main_loop(void)
 			for (j = 0; j < nb_rx; j++) {
 				m = pkts_burst[j];
 				rte_prefetch0(rte_pktmbuf_mtod(m, void *));//prefeth
-				l2fwd_simple_forward(m, portid); 
+				l2fwd_simple_forward(m, portid);//从这儿开始改.
 			}
 		}
 	}
@@ -934,9 +934,8 @@ main(int argc, char **argv)
 		size_t n = 64000000;	// 2^24
 		uint kLoad = 85;
 		std::vector<uint64_t> kvs;
-		load_data<uint64_t>(kvs, n, data_t::FB);
-		dp = new chained_learned_hash_t(kvs, kLoad/100.0);
-		std::cout << "total kvs size: " << kvs.size() << std::endl;
+		load_data<uint64_t>(kvs, n, data_t::WIKI);
+		dp = new cuckoo_hash_t(kvs, kvs.size(), kLoad/100.0);
 	}
 
 	ret = 0;

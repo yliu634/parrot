@@ -196,7 +196,7 @@ public:
     // till this line, an empty ludo is ready
     if (toInsert) {
       for (int i = 0; i < toInsert; ++i) {
-        insert(keys[i], 0, false);
+        insert(keys[i], 2, false);
         if (i % 1000000 == 0)  std::cout << "inserting keys: " << i << std::endl;
       }
     }
@@ -227,7 +227,7 @@ public:
   
   bool powerSize(uint times) {
     checkIntegrity();
-    throw runtime_error("Please set your capacity well, resizing is dangeous.");
+    //throw runtime_error("Please set your capacity well, resizing is dangeous.");
     unsigned long oldSize = num_buckets_ / times;
     buckets_.resize(num_buckets_, empty_bucket);
     locator.resizeCapacity(capacity);
@@ -280,24 +280,20 @@ public:
     bool enlarge = nextNbuckets > num_buckets_;
     uint times = enlarge ? nextNbuckets / num_buckets_ : num_buckets_ / nextNbuckets;
     
-    num_buckets_ = nextNbuckets;
     capacity = nextCapacity;
-    
+    num_buckets_ = nextNbuckets;
+
     // until here, ludo+fallback is integral as a whole, except that capacity and num_buckets_ are changed.
     if (enlarge && integrity) {
       if (powerSize(times)) return;
     }
-//    } else if (shrink && integrity) {
-//      if (foldSize(times)) return;
-//    }
-    // at here, ludo+fallback is still integral as a whole
     
     integrity = false;
     oldBuckets = buckets_;
     
     locator.resizeCapacity(capacity);
     buckets_.resize(num_buckets_, empty_bucket);
-    
+
     if (num_buckets_ >= (1U << 30U)) {
       throw runtime_error("Current design only support up to 4 billion key set size! ");
     }
@@ -735,15 +731,16 @@ public:
         }
       }
     }
-    
-    //if (online) {
-    //  return {-2};
-    //} else {
-    //  resizeCapacity(nKeys + 1, true);
-    //  result = insert(k, v, false);
-    //  result.status = 2;
-    //  return result;
-    //}
+
+    //return result;
+    if (online) {
+      return {-2};
+    } else {
+      resizeCapacity(nKeys + 1, true);
+      result = insert(k, v, false);
+      result.status = 2;
+      return result;
+    }
   }
   
   bool build() {

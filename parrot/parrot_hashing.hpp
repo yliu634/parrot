@@ -184,7 +184,7 @@ public:
     uint32_t toInsert = (uint32_t) keys.size();
     if (toInsert) {
       for (uint32_t i = 0; i <= keys.size(); i ++) {
-        insert(keys[i], 0, false);
+        insert(keys[i], 2, false);
       }
     }
   }

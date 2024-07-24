@@ -42,7 +42,7 @@ void read_file_data_with_no_duplicate(
   uint64_t item_num(0);
   int64_t buf[BUF_SIZE];
   fseek(fin,sizeof(uint64_t),SEEK_SET);
-  while (item_num < 3*n/2) {
+  while (item_num < 200e6) {
     size_t num_read = fread(buf, sizeof(uint64_t), BUF_SIZE, fin);
     for (size_t i = 0; i < num_read; i++) {
       vec.push_back(buf[i]);
@@ -164,22 +164,22 @@ void load_data(std::vector<K>& data, const size_t n, data_t dataset) {
       break;
     }
     case WIKI: {
-      std::string path="./datasets/wiki_ts_200M_uint64";
+      std::string path="/home/yiliu/build/parrot/datasets/wiki_ts_200M_uint64";
       read_file_data_with_no_duplicate(data, n, path);
       break;
     }
     case FB: {
-      std::string path="./datasets/fb_200M_uint64";
+      std::string path="/home/yiliu/build/parrot/datasets/fb_200M_uint64";
       read_file_data(data, n, path);
       break;
     }
     case OSM: {
-      std::string path="./datasets/osm_cellids_200M_uint64";
+      std::string path="/home/yiliu/build/parrot/datasets/osm_cellids_200M_uint64";
       read_file_data(data, n, path);
       break;
     }
     case BOOK: {
-      std::string path="./datasets/books_200M_uint64";
+      std::string path="/home/yiliu/build/parrot/datasets/books_200M_uint64";
       read_file_data(data, n, path);
       break;
     }
