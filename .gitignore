@@ -1,3 +1,8 @@
-datasets/*_uint64
+zlog-cfg-cur
+bf_drivers.log*
+pcap_output/
+controller/*.pyc
+controller/*.log
+dpdk_code/build/
 recycles/
-build/
+model_*

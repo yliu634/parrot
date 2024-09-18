@@ -1,0 +1,36 @@
+# mac.pkt
+#
+# Contributed by gkenaley
+
+# You can modify the protocol used as udp or tcp
+# Show rage page: page range, if back: pagen main 
+
+set all size 128
+
+set all proto udp
+
+range all proto udp
+
+set 0 src ip 192.168.1.1/24
+range 0 src ip 192.168.1.1 192.168.1.1 192.168.1.1 0.0.0.0
+
+set 0 dst ip 192.168.1.2/16
+range 0 dst ip 192.168.1.2 192.168.1.2 192.168.1.2 0.0.0.0
+
+set 0 src mac 98:03:9b:98:be:5e
+range 0 src mac 98:03:9b:98:be:5e 98:03:9b:98:be:5e 98:03:9b:98:be:5e 00:00:00:00:00:00
+
+set 0 dst mac 00:00:00:00:00:00
+range 0 dst 00:00:00:00:00:00 00:00:00:00:00:00 00:00:00:00:ff:ff 00:00:00:00:00:01
+
+enable all process
+
+# Ramp up throughput over 10 seconds, as is commonly done on Ixia/Spirent
+# Percentage rates are apparently relative to 40G on 40G capable cards (even 4x10G)
+# Note that some switches require up to 30 seconds to learn before bi-directional traffic starts!
+
+set all rate 100
+delay 1000
+
+# please type start all
+

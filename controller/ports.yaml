@@ -1,0 +1,3 @@
+ports:
+    8/0 : {speed: "40G", fec: "none", autoneg: "disable", mac: "3c:fd:fe:ab:d9:f0", ip: "10.1.1.8"}
+    16/0 : {speed: "40G", fec: "none", autoneg: "disable", mac: "3c:fd:fe:c3:df:e0", ip: "10.1.1.16"}
